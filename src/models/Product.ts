@@ -15,14 +15,22 @@ const productSchema = new mongoose.Schema<IProduct>(
       trim: true,
     },
     preco: {
-      type: Number,
-      required: true,
-      min: 0,
+    type: Number,
+    required: true,
+    min: 0,
+    validate: {
+      validator: (v: number) => Number.isInteger(v * 100),
+      message: "Preço deve ter no máximo 2 casas decimais",
+    },
     },
     quantidadeEmStock: {
       type: Number,
       min: 0,
       default: 0,
+        validate: {
+      validator: Number.isInteger,
+      message: "Quantidade deve ser um número inteiro",
+  },
     },
     descricao: {
       type: String,
