@@ -3,6 +3,12 @@ import type { IProduct } from "../types/IProduct.js";
 
 const productSchema = new mongoose.Schema<IProduct>(
   {
+      productId: {
+      type: Number,
+      required: true,
+      unique: true,
+      immutable: true,
+    },
     nome: {
       type: String,
       required: true,
@@ -15,7 +21,6 @@ const productSchema = new mongoose.Schema<IProduct>(
     },
     quantidadeEmStock: {
       type: Number,
-      required: true,
       min: 0,
       default: 0,
     },
