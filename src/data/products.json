@@ -1,0 +1,32 @@
+[
+  {
+    "nome": "Telemóvel",
+    "preco": 100,
+    "quantidadeEmStock": 10,
+    "descricao": "Telemóvel"
+  },
+  {
+    "nome": "Portátil",
+    "preco": 550,
+    "quantidadeEmStock": 5,
+    "descricao": "Portátil para trabalho"
+  },
+  {
+    "nome": "Rato Wireless",
+    "preco": 150,
+    "quantidadeEmStock": 20,
+    "descricao": "Rato sem fios"
+  },
+  {
+    "nome": "Teclado Mecânico",
+    "preco": 350,
+    "quantidadeEmStock": 15,
+    "descricao": "Teclado mecânico"
+  },
+  {
+    "nome": "Monitor",
+    "preco": 1200,
+    "quantidadeEmStock": 8,
+    "descricao": "Monitor Full HD 24 polegadas"
+  }
+]
