@@ -3,6 +3,13 @@ import { Product } from "../models/Product.js";
 import { Counter } from "../models/Counter.js";
 import { parseProductId } from "../utils/parseProductId.js";
 
+/**
+ * GET /products
+ * Retorna a lista completa de produtos, ordenada por `productId`.
+ * Respostas:
+ *  - 200: array de produtos
+ *  - 500: erro do servidor
+ */
 export const getAllProducts = async (
   req: Request,
   res: Response
@@ -16,17 +23,28 @@ export const getAllProducts = async (
   }
 };
 
+/**
+ * GET /products/:id
+ * Obtém um produto pelo seu `productId` (inteiro positivo).
+ * Valida o `id` e retorna 400 em caso de formato inválido.
+ * Respostas:
+ *  - 200: objeto do produto
+ *  - 400: ID inválido
+ *  - 404: produto não encontrado
+ *  - 500: erro do servidor
+ */
 export const getProductById = async (req: Request, res: Response): Promise<void> => {
   try {
     const productId = parseProductId(req.params.id);
 
+    // Validação do parâmetro `id` (deve ser inteiro positivo)
     if (productId === null) {
       res.status(400).json({ error: "ID inválido" });
       return;
     }
 
+    // Procurar produto na BD pelo campo `productId`
     const product = await Product.findOne({ productId });
-
 
     if (!product) {
       res.status(404).json({ error: "Produto não encontrado" });
@@ -40,6 +58,16 @@ export const getProductById = async (req: Request, res: Response): Promise<void>
   }
 };
 
+/**
+ * POST /products
+ * Cria um novo produto. O `productId` é gerado automaticamente
+ * através do documento `Counter` (campo `value` incrementado).
+ * Valida os campos do corpo do pedido e retorna 400 se estiverem inválidos.
+ * Respostas:
+ *  - 201: produto criado
+ *  - 400: campos inválidos
+ *  - 500: erro do servidor / erro ao gerar ID
+ */
 export const createProduct = async (
   req: Request,
   res: Response
@@ -47,24 +75,24 @@ export const createProduct = async (
   try {
     const { nome, preco, quantidadeEmStock, descricao } = req.body;
 
-   if (!nome || typeof nome !== "string" ||
-    preco == null || typeof preco !== "number" ||
-    !descricao || typeof descricao !== "string") {
-  res.status(400).json({ error: "Campos inválidos" });
-  return;
-}
+    // Validação mínima dos campos obrigatórios
+    if (
+      !nome || typeof nome !== "string" ||
+      preco == null || typeof preco !== "number" ||
+      !descricao || typeof descricao !== "string"
+    ) {
+      res.status(400).json({ error: "Campos inválidos" });
+      return;
+    }
 
+    // Incrementar e obter o próximo productId de forma atómica
     const counter = await Counter.findOneAndUpdate(
       { name: "productId" },
       { $inc: { value: 1 } },
       { new: true, upsert: true }
     );
 
-    if (!counter) {
-      res.status(500).json({ error: "Erro ao gerar ID do produto" });
-      return;
-    }
-
+    // Construir o documento do produto
     const novoProduct = new Product({
       productId: counter.value,
       nome,
@@ -73,10 +101,12 @@ export const createProduct = async (
       descricao,
     });
 
+    // Se por algum motivo o counter não existir, tratar como erro
     if (!counter) {
       res.status(500).json({ error: "Erro ao gerar ID do produto" });
       return;
-}
+    }
+
     await novoProduct.save();
     res.status(201).json(novoProduct);
   } catch (error) {
@@ -86,6 +116,16 @@ export const createProduct = async (
 };
 
 
+/**
+ * PUT /products/:id
+ * Atualiza um produto existente. Valida o `id` e procura o documento;
+ * aplica apenas os campos enviados no corpo do pedido.
+ * Respostas:
+ *  - 200: produto atualizado
+ *  - 400: ID inválido
+ *  - 404: produto não encontrado
+ *  - 500: erro do servidor
+ */
 export const updateProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const productId = parseProductId(req.params.id);
@@ -94,6 +134,8 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
       res.status(400).json({ error: "ID inválido" });
       return;
     }
+
+    // Procurar o produto pelo `productId`
     const product = await Product.findOne({ productId});
 
     if (!product) {
@@ -101,6 +143,7 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+    // Atualizar apenas os campos presentes no corpo do pedido
     const { nome, preco, quantidadeEmStock, descricao } = req.body;
 
     if (nome !== undefined) product.nome = nome;
@@ -117,6 +160,15 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
+/**
+ * DELETE /products/:id
+ * Apaga um produto com o `productId` fornecido.
+ * Respostas:
+ *  - 200: confirmação de eliminação
+ *  - 400: ID inválido
+ *  - 404: produto não encontrado
+ *  - 500: erro do servidor
+ */
 export const deleteProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const productId = parseProductId(req.params.id);
@@ -126,6 +178,7 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+    // Apagar o documento correspondente ao `productId`
     const produtoDeletado = await Product.findOneAndDelete({productId});
 
     if (!produtoDeletado) {
